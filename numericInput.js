@@ -7,6 +7,11 @@
 //	if possible please credit me: www.transtatic.com
 ///////////////////////////////////////////////////////////////
 
+/**
+ * Markenwerk fork of the original library containing decimal separator options
+ * @see https://github.com/markenwerk/NumericInput
+ */
+
 //	Sets a keypress event for the selected element allowing only numbers. Typically this would only be bound to a textbox.
 (function ($) {
 	// Plugin defaults
@@ -15,7 +20,7 @@
 		allowNegative: false,
 		min: undefined,
 		max: undefined,
-		decimalPoint: 'period'
+		decimalSeparator: 'PERIOD'
 	};
 
 	// Plugin definition
@@ -29,7 +34,7 @@
 		var allowNegative = settings.allowNegative;
 		var min = settings.min;
 		var max = settings.max;
-		var decimalPoint = settings.decimalPoint;
+		var decimalSeparator = settings.decimalSeparator;
 
 		if (min === max) {
 			throw("The minimum value cannot be the same as the max value");
@@ -42,10 +47,33 @@
 			max = temp;
 		}
 
-		var deciamlPointCharCode = (decimalPoint.toUpperCase() === 'COMMA') ? 44 : 46;
-		var deciamlPointPattern = (decimalPoint.toUpperCase() === 'COMMA') ? /[,]/ : /[.]/;
+		var deciamlPointCharCode = (decimalSeparator.toUpperCase() === 'COMMA') ? 44 : 46;
+		var deciamlPointPattern = (decimalSeparator.toUpperCase() === 'COMMA') ? /[,]/ : /[.]/;
+
+		var controlDown = false;
+		var controlKeyCodes = [
+			224,	// Firefox
+			17,		// Opera
+			91,		// WebKit (Safari/Chrome) (Left Apple)
+			93		// WebKit (Safari/Chrome) (Right Apple)
+		];
+
+		this.keydown(function (event) {
+			if (event.metaKey || event.ctrlKey || jQuery.inArray(parseInt(event.which), controlKeyCodes) !== -1) {
+				controlDown = true;
+			}
+		});
+
+		this.keyup(function (event) {
+			if (event.metaKey || event.ctrlKey || jQuery.inArray(parseInt(event.which), controlKeyCodes) !== -1) {
+				controlDown = false;
+			}
+		});
 
 		this.keypress(function (event) {
+			if (controlDown) {
+				return true;
+			}
 			var inputCode = event.which;
 			var currentValue = $(this).val();
 
@@ -76,8 +104,8 @@
 					}
 				}
 
-				// Allows backspace , ctrl+c ,ctrl+v (copy & paste)
-				else if (inputCode === 8 || inputCode === 67 || inputCode === 86) {
+				// Allows backspace, ctrl+c, ctrl+v (copy & paste), enter (submit)
+				else if (inputCode === 8 || inputCode === 67 || inputCode === 86 || inputCode === 13) {
 					return true;
 				}
 
